@@ -119,7 +119,7 @@
         );
 
         const data = await response.json();
-        reply.textContent = data.reply || data.response || data.error || "Abhi jawab nahi mila.";
+        reply.textContent = data.reply || data.response || data.error || "Main ISMA AI hoon. Abhi jawab nahi mila.";
       } catch (error) {
         reply.textContent = "AI server connect nahi hua. Server URL check karna hoga.";
       }
