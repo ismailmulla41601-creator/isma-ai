@@ -111,8 +111,10 @@
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: question })
-          }
+            body: JSON.stringify({
+  message: question,
+  system: "Your name is ISMA AI. Always identify yourself as ISMA AI, never as another AI model. Reply in the same language the user uses. Support Hindi, English, Kannada, Urdu, and as many other languages as possible. Be helpful, accurate, and honest. Do not guess the current date."
+})
         );
 
         const data = await response.json();
