@@ -79,10 +79,13 @@
     <div class="msg bot">Namaste! 👋 Main ISMA AI hoon. Mujhse kuch bhi poochho!</div>
   </main>
 
-  <footer>
-    <input id="question" placeholder="Message ISMA AI..." />
-    <button onclick="sendMessage()">Send</button>
-  </footer>
+  
+<footer>
+  <input id="question" placeholder="Message ISMA AI..." />
+  <button id="voiceBtn" onclick="startVoiceInput()" type="button">🎤</button>
+  <button onclick="sendMessage()" type="button">Send</button>
+</footer>
+  
 
   <script>
     const chat = document.getElementById("chat");
