@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b14">
+  <title>ISMA AI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #080b14; color: #f4f7ff; }
+    header { padding: 16px; text-align: center; background: #111827; border-bottom: 1px solid #263449; }
+    header h1 { color: #00e5ff; margin: 0; }
+    header p { color: #aab6cc; margin: 5px 0 0; }
+    #chat { padding: 16px; max-width: 760px; margin: auto; height: calc(100dvh - 185px); overflow-y: auto; padding-bottom: 28px; }
+    .msg { padding: 12px 15px; margin: 12px 0; border-radius: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bot { background: #172337; border: 1px solid #263c58; }
+    .user { background: #063d4b; text-align: right; }
+    footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); background: #111827; border-top: 1px solid #263449; display: flex; gap: 7px; align-items: center; }
+    input { flex: 1; width: 100%; min-width: 0; padding: 12px; border-radius: 10px; border: 1px solid #34445c; background: #080b14; color: white; font-size: 16px; }
+    button { padding: 12px 13px; border: 0; border-radius: 10px; background: #00d9f5; color: #001018; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    #newChatBtn { background: #25354b; color: white; border: 1px solid #40536e; }
+    @media (max-width: 520px) {
+      footer { gap: 5px; padding-left: 6px; padding-right: 6px; }
+      footer button { padding: 12px 9px; font-size: 12px; }
+      #chat { padding: 12px; height: calc(100dvh - 180px); }
+      header { padding: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ISMA AI</h1>
+    <p>Created by Ismail Mulla</p>
+    <p>Your personal AI assistant</p>
+  </header>
+
+  <main id="chat" aria-live="polite" aria-label="Chat messages"></main>
+
+  <footer>
+    <input id="question" type="text" placeholder="Message ISMA AI..." aria-label="Message ISMA AI" autocomplete="off">
+    <button id="voiceBtn" type="button" aria-label="Voice input" title="Voice input">🎤</button>
+    <button id="sendBtn" type="button">Send</button>
+    <button id="newChatBtn" type="button">＋ New Chat</button>
+  </footer>
+
+  <script>
+    "use strict";
+
+    // Existing Worker URL preserved.
+    const API_URL = "https://round-heart-0fcb.ismailmulla41601.workers.dev/";
+    const HISTORY_KEY = "ismaChatMessagesV2";
+    const OLD_HISTORY_KEY = "ismaChatHistory";
+
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("question");
+    const sendBtn = document.getElementById("sendBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+    const newChatBtn = document.getElementById("newChatBtn");
+
+    let messages = [];
+    let isSending = false;
+    let recognition = null;
+
+    function saveChatHistory() {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(messages));
+      } catch (error) {
+        console.warn("Chat history could not be saved:", error);
+      }
+    }
+
+    function loadChatHistory() {
+      try {
+        const saved = localStorage.getItem(HISTORY_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            messages = parsed.filter(item =>
+              item &&
+              (item.role === "user" || item.role === "bot") &&
+              typeof item.text === "string"
+            );
+          }
+        } else {
+          // Import legacy history as text, not by injecting saved HTML into the page.
+          const oldSaved = localStorage.getItem(OLD_HISTORY_KEY);
+          if (oldSaved) {
+            const oldDoc = new DOMParser().parseFromString(oldSaved, "text/html");
+            messages = Array.from(oldDoc.querySelectorAll(".msg")).map(el => ({
+              role: el.classList.contains("user") ? "user" : "bot",
+              text: el.textContent || ""
+            }));
+            saveChatHistory();
+          }
+        }
+      } catch (error) {
+        console.warn("Chat history could not be loaded:", error);
+        messages = [];
+      }
+
+      if (!messages.length) {
+        messages = [{ role: "bot", text: "Namaste! 👋 Main ISMA AI hoon. Mujhse kuch bhi poochho!" }];
+        saveChatHistory();
+      }
+      renderMessages();
+    }
+
+    function renderMessages() {
+      chat.replaceChildren();
+      messages.forEach(message => {
+        const div = document.createElement("div");
+        div.className = "msg " + (message.role === "user" ? "user" : "bot");
+        div.textContent = message.text;
+        chat.appendChild(div);
+      });
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addMessage(text, role) {
+      messages.push({ role: role, text: String(text ?? "") });
+      saveChatHistory();
+      renderMessages();
+    }
+
+    function replaceLastBotMessage(text) {
+      for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].role === "bot") {
+          messages[i].text = String(text ?? "");
+          break;
+        }
+      }
+      saveChatHistory();
+      renderMessages();
+    }
+
+    function newChat() {
+      if (isSending) {
+        alert("Pehle current AI response complete hone dein.");
+        return;
+      }
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      if (recognition) {
+        try { recognition.abort(); } catch (_) {}
+      }
+      messages = [{
+        role: "bot",
+        text: "Namaste! 😊 Main ISMA AI hoon. Nayi chat mein aapka swagat hai! Batao, kya help chahiye?"
+      }];
+      saveChatHistory();
+      renderMessages();
+      input.value = "";
+      input.focus();
+    }
+
+    function extractAnswer(data) {
+      if (typeof data === "string") return data;
+      if (!data || typeof data !== "object") return "";
+      if (typeof data.reply === "string") return data.reply;
+      if (typeof data.response === "string") return data.response;
+      if (typeof data.answer === "string") return data.answer;
+      if (data.choices && data.choices[0] && data.choices[0].message &&
+          typeof data.choices[0].message.content === "string") {
+        return data.choices[0].message.content;
+      }
+      if (typeof data.error === "string") throw new Error(data.error);
+      return "";
+    }
+
+    async function sendMessage() {
+      const question = input.value.trim();
+      if (!question || isSending) return;
+
+      addMessage(question, "user");
+      input.value = "";
+      isSending = true;
+      sendBtn.disabled = true;
+      voiceBtn.disabled = true;
+      sendBtn.textContent = "Wait...";
+      addMessage("Soch raha hoon...", "bot");
+
+      const system =
+        "Your name is ISMA AI. Your creator is Ismail Mulla. " +
+        "Do not assume the user's name is Ismail Mulla. " +
+        "If asked your name, say: I am ISMA AI. " +
+        "If asked who created you, say: Ismail Mulla created ISMA AI. " +
+        "Reply in the same language as the user. Be helpful and honest.";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: question, system: system })
+        });
+
+        const raw = await response.text();
+        let data;
+        try { data = raw ? JSON.parse(raw) : {}; }
+        catch (_) { data = { reply: raw }; }
+
+        if (!response.ok) {
+          const detail = data && (data.error || data.message);
+          throw new Error(detail || ("Server error: " + response.status));
+        }
+
+        const answer = extractAnswer(data);
+        if (!answer || !answer.trim()) {
+          throw new Error("AI server ka response samajh nahi aaya.");
+        }
+
+        replaceLastBotMessage(answer);
+        speakText(answer);
+      } catch (error) {
+        console.error("ISMA AI error:", error);
+        replaceLastBotMessage(
+          "ISMA AI se connect nahi ho paya. Internet check karo. " +
+          "Agar issue rahe, Cloudflare Worker ka response aur error check karna hoga."
+        );
+      } finally {
+        isSending = false;
+        sendBtn.disabled = false;
+        voiceBtn.disabled = false;
+        sendBtn.textContent = "Send";
+        input.focus();
+      }
+    }
+
+    function speakText(text) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (/[\u0C80-\u0CFF]/.test(text)) utterance.lang = "kn-IN";
+      else if (/[\u0900-\u097F]/.test(text)) utterance.lang = "hi-IN";
+      else if (/[\u0600-\u06FF]/.test(text)) utterance.lang = "ur-PK";
+      else utterance.lang = "en-IN";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function startVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        addMessage("Voice input supported nahi hai. Android Chrome mein try karo.", "bot");
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognition();
+        recognition.lang = "hi-IN";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = "🎙️";
+
+        recognition.onresult = function(event) {
+          const result = event.results && event.results[0] && event.results[0][0];
+          if (result) input.value = result.transcript;
+          input.focus();
+        };
+        recognition.onerror = function(event) {
+          addMessage(
+            event.error === "not-allowed"
+              ? "Microphone permission allow karo."
+              : "Voice input nahi chala. Dobara try karo.",
+            "bot"
+          );
+        };
+        recognition.onend = function() {
+          voiceBtn.disabled = isSending;
+          voiceBtn.textContent = "🎤";
+          recognition = null;
+        };
+        recognition.start();
+      } catch (error) {
+        voiceBtn.disabled = isSending;
+        voiceBtn.textContent = "🎤";
+        recognition = null;
+        addMessage("Voice input start nahi hua. Browser permission aur HTTPS check karo.", "bot");
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    newChatBtn.addEventListener("click", newChat);
+    voiceBtn.addEventListener("click", startVoiceInput);
+    input.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+    loadChatHistory();
+  </script>
+</body>
+</html>
