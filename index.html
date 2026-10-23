@@ -139,6 +139,7 @@ system: "Your name is ISMA AI. Your creator is Ismail Mulla. The user's name is 
 
         const data = await response.json();
         reply.textContent = typeof data === "string" ? data : (data.reply || data.response || data.error || JSON.stringify(data));
+        saveChatHistory();
         speakText(reply.textContent);
       } catch (error) {
         reply.textContent = "AI server connect nahi hua. Server URL check karna hoga.";
