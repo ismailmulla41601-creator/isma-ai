@@ -143,6 +143,8 @@ system: "Your name is ISMA AI. Your creator is Ismail Mulla. The user's name is 
         speakText(reply.textContent);
       } catch (error) {
         reply.textContent = "AI server connect nahi hua. Server URL check karna hoga.";
+        
+saveChatHistory();
       }
     }
 function speakText(text) {
