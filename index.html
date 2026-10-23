@@ -96,6 +96,7 @@
       div.className = "msg " + type;
       div.textContent = text;
       chat.appendChild(div);
+      saveChatHistory();
       chat.scrollTop = chat.scrollHeight;
       return div;
     }
