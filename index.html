@@ -128,11 +128,35 @@ system: "Your name is ISMA AI. Your creator is Ismail Mulla. The user's name is 
 
         const data = await response.json();
         reply.textContent = typeof data === "string" ? data : (data.reply || data.response || data.error || JSON.stringify(data));
+        speakText(reply.textContent);
       } catch (error) {
         reply.textContent = "AI server connect nahi hua. Server URL check karna hoga.";
       }
     }
+function speakText(text) {
+  if (!("speechSynthesis" in window)) {
+    addMessage("Voice playback supported nahi hai.", "bot");
+    return;
+  }
 
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  if (/[\u0C80-\u0CFF]/.test(text)) {
+    utterance.lang = "kn-IN";
+  } else if (/[\u0900-\u097F]/.test(text)) {
+    utterance.lang = "hi-IN";
+  } else if (/[\u0600-\u06FF]/.test(text)) {
+    utterance.lang = "ur-PK";
+  } else {
+    utterance.lang = "en-IN";
+  }
+
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
+}
 function startVoiceInput() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
