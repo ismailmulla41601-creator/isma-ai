@@ -4,410 +4,836 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b14">
   <title>ISMA AI</title>
 
   <style>
+    :root {
+      --bg: #080b14;
+      --panel: #101625;
+      --panel2: #151d30;
+      --border: #27334b;
+      --text: #f4f7ff;
+      --muted: #9aa8c0;
+      --blue: #4b8dff;
+      --cyan: #36e0dc;
+      --danger: #ff647c;
+    }
+
     * {
       box-sizing: border-box;
     }
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #080b14;
-      color: white;
+      font-family: system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(ellipse at top, #132344 0%, transparent 48%),
+        var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      overflow: hidden;
     }
 
-    header {
-      padding: 18px;
-      text-align: center;
-      background: #111827;
-      border-bottom: 1px solid #263449;
-    }
-
-    header h1 {
-      color: #00e5ff;
-      margin: 0;
-    }
-
-    header p {
-      color: #aab6cc;
-      margin-bottom: 0;
-    }
-
-    #chat {
-      padding: 18px;
-      max-width: 700px;
-      margin: auto;
-      height: calc(100dvh - 180px);
-      overflow-y: auto;
-      padding-bottom: 24px;
-    }
-
-    .msg {
-      padding: 12px 15px;
-      margin: 12px 0;
-      border-radius: 14px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .bot {
-      background: #172337;
-      border: 1px solid #263c58;
-    }
-
-    .user {
-      background: #063d4b;
-      text-align: right;
-    }
-
-    footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 10px;
-      padding-bottom: max(10px, env(safe-area-inset-bottom));
-      background: #111827;
-      border-top: 1px solid #263449;
-      display: flex;
-      gap: 7px;
-      align-items: center;
-    }
-
-    input {
-      flex: 1;
-      width: 100%;
-      min-width: 0;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #34445c;
-      background: #080b14;
-      color: white;
-      font-size: 16px;
+    button, textarea {
+      font: inherit;
     }
 
     button {
-      padding: 12px 13px;
-      border: 0;
-      border-radius: 10px;
-      background: #00d9f5;
-      color: #001018;
-      font-weight: bold;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      max-width: 1000px;
+      height: 100dvh;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border-left: 1px solid #172238;
+      border-right: 1px solid #172238;
+      background: rgba(8, 11, 20, 0.88);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(12, 17, 30, 0.96);
+    }
+
+    .brand-icon {
+      width: 43px;
+      height: 43px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      color: white;
+      font-size: 22px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #367dff, #25d6d0);
+      box-shadow: 0 0 20px #367dff45;
+    }
+
+    .brand {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .brand h1 {
+      font-size: 19px;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    .brand p {
+      color: var(--muted);
+      font-size: 11px;
+      margin: 2px 0 0;
+    }
+
+    .top-btn {
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 10px 11px;
+      font-size: 13px;
       white-space: nowrap;
     }
 
-    button:disabled {
-      opacity: 0.55;
+    .top-btn:active, .tool-btn:active {
+      transform: scale(.97);
+    }
+
+    .status {
+      padding: 8px 14px;
+      color: #7ce8bc;
+      font-size: 11px;
+      border-bottom: 1px solid #1b263a;
+      background: #0c1320;
+    }
+
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 13px 24px;
+      scroll-behavior: smooth;
+    }
+
+    .welcome {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px 10px;
+    }
+
+    .welcome-logo {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      font-weight: 900;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #367dff, #25d6d0);
+      box-shadow: 0 0 35px #367dff40;
+      margin-bottom: 20px;
+    }
+
+    .welcome h2 {
+      font-size: 25px;
+      margin: 0 0 8px;
+    }
+
+    .welcome p {
+      max-width: 310px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .suggestions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 22px;
+      max-width: 430px;
+    }
+
+    .suggestion {
+      color: #c8d8ff;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+
+    .message {
+      display: flex;
+      gap: 9px;
+      margin: 0 auto 19px;
+      max-width: 780px;
+      align-items: flex-start;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 33px;
+      height: 33px;
+      flex-shrink: 0;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 800;
+      background: #1a2c4d;
+      color: #8fc4ff;
+    }
+
+    .message.user .avatar {
+      background: #183b3b;
+      color: #79f4dd;
+    }
+
+    .bubble-wrap {
+      max-width: calc(100% - 42px);
+      min-width: 0;
+    }
+
+    .message.user .bubble-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .bubble {
+      border: 1px solid var(--border);
+      background: #111a2b;
+      padding: 12px 14px;
+      border-radius: 5px 17px 17px 17px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, #1b3d70, #193553);
+      border-color: #31588a;
+      border-radius: 17px 5px 17px 17px;
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .mini-btn {
+      border: 1px solid #27334b;
+      background: #0d1422;
+      color: #b7c5dc;
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+
+    .typing {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 10px;
+    }
+
+    .composer-area {
+      padding: 10px 12px max(12px, env(safe-area-inset-bottom));
+      background: #0c1220;
+      border-top: 1px solid var(--border);
+    }
+
+    .composer {
+      max-width: 780px;
+      margin: auto;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      border: 1px solid #2a3b59;
+      background: #121a2b;
+      border-radius: 17px;
+      padding: 8px;
+    }
+
+    #userInput {
+      flex: 1;
+      min-width: 0;
+      resize: none;
+      max-height: 130px;
+      min-height: 40px;
+      border: 0;
+      outline: none;
+      color: var(--text);
+      background: transparent;
+      padding: 10px 5px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #userInput::placeholder {
+      color: #7787a1;
+    }
+
+    .tool-btn {
+      width: 41px;
+      height: 41px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      color: #dce7ff;
+      background: #1a263c;
+      font-size: 17px;
+    }
+
+    .tool-btn.listening {
+      background: #6a2032;
+      border-color: var(--danger);
+      animation: pulse 1s infinite;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, #397dff, #4164f5);
+      color: white;
+      border: 0;
+      font-size: 18px;
+    }
+
+    .send-btn:disabled {
+      opacity: .45;
       cursor: not-allowed;
     }
 
-    #newChatBtn {
-      background: #25354b;
-      color: #ffffff;
-      border: 1px solid #40536e;
+    .footer-note {
+      text-align: center;
+      color: #687892;
+      font-size: 10px;
+      margin-top: 8px;
     }
 
-    @media (max-width: 480px) {
-      footer {
-        gap: 5px;
-        padding-left: 6px;
-        padding-right: 6px;
-      }
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #0009;
+    }
 
-      footer button {
-        padding: 12px 9px;
-        font-size: 12px;
-      }
+    .overlay.open {
+      display: block;
+    }
 
-      #chat {
-        height: calc(100dvh - 175px);
-        padding: 12px;
-      }
+    .history-panel {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: min(340px, 88vw);
+      display: flex;
+      flex-direction: column;
+      background: #0d1422;
+      border-right: 1px solid var(--border);
+      padding: 15px;
+      transform: translateX(-100%);
+      transition: transform .22s ease;
+    }
 
-      header {
-        padding: 14px;
-      }
+    .overlay.open .history-panel {
+      transform: translateX(0);
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .history-header h2 {
+      flex: 1;
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .history-new {
+      width: 100%;
+      border: 1px solid #376ed0;
+      border-radius: 12px;
+      padding: 12px;
+      color: white;
+      background: #1a3767;
+      margin-bottom: 13px;
+      text-align: left;
+    }
+
+    .history-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 0 0 9px 3px;
+    }
+
+    #historyList {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 5px;
+      margin-bottom: 5px;
+    }
+
+    .history-item.active {
+      background: #192740;
+      border-color: #2c4264;
+    }
+
+    .history-open {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      color: #dce6f8;
+      background: transparent;
+      text-align: left;
+      padding: 8px 5px;
+    }
+
+    .history-title {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .history-date {
+      display: block;
+      color: #8090aa;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    .delete-btn {
+      flex-shrink: 0;
+      border: 0;
+      border-radius: 8px;
+      color: #ff8b9b;
+      background: #2a1925;
+      padding: 8px 10px;
+    }
+
+    .empty-history {
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      padding: 25px 5px;
+    }
+
+    @keyframes pulse {
+      50% { opacity: .55; }
+    }
+
+    @media (min-width: 700px) {
+      .topbar { padding: 15px 20px; }
+      .chat { padding: 24px 22px; }
+      .composer-area { padding-left: 20px; padding-right: 20px; }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <h1>ISMA AI</h1>
-    <p>Created by Ismail Mulla</p>
-    <p>Your personal AI assistant</p>
-  </header>
+  <div class="app">
+    <header class="topbar">
+      <button class="top-btn" id="historyBtn" aria-label="Open chat history">
+        ☰
+      </button>
 
-  <main id="chat" aria-live="polite">
-    <div class="msg bot">
-      Namaste! 👋 Main ISMA AI hoon. Mujhse kuch bhi poochho!
-    </div>
-  </main>
+      <div class="brand-icon">I</div>
 
-  <footer>
-    <input
-      id="question"
-      type="text"
-      placeholder="Message ISMA AI..."
-      aria-label="Message ISMA AI"
-      autocomplete="off"
-    />
+      <div class="brand">
+        <h1>ISMA AI</h1>
+        <p>Your personal AI assistant</p>
+      </div>
 
-    <button
-      id="voiceBtn"
-      onclick="startVoiceInput()"
-      type="button"
-      aria-label="Voice input"
-    >🎤</button>
+      <button class="top-btn" id="newChatBtn">＋ New Chat</button>
+    </header>
 
-    <button
-      id="sendBtn"
-      onclick="sendMessage()"
-      type="button"
-    >Send</button>
+    <div class="status">● AI Assistant Ready</div>
 
-    <button
-      id="newChatBtn"
-      onclick="newChat()"
-      type="button"
-    >＋ New Chat</button>
-  </footer>
+    <main class="chat" id="chatBox" aria-live="polite"></main>
+
+    <section class="composer-area">
+      <div class="composer">
+        <button class="tool-btn" id="micBtn" title="Voice input" aria-label="Voice input">
+          🎙
+        </button>
+
+        <textarea
+          id="userInput"
+          rows="1"
+          placeholder="Message ISMA AI..."
+          aria-label="Your message"
+        ></textarea>
+
+        <button class="tool-btn send-btn" id="sendBtn" aria-label="Send message">
+          ➤
+        </button>
+      </div>
+      <div class="footer-note">ISMA AI · Your chats are saved on this device</div>
+    </section>
+  </div>
+
+  <div class="overlay" id="historyOverlay">
+    <aside class="history-panel" aria-label="Chat history">
+      <div class="history-header">
+        <h2>💬 Chat History</h2>
+        <button class="top-btn" id="closeHistoryBtn" aria-label="Close history">✕</button>
+      </div>
+
+      <button class="history-new" id="historyNewBtn">＋ Start a new conversation</button>
+      <p class="history-label">YOUR CONVERSATIONS</p>
+      <div id="historyList"></div>
+    </aside>
+  </div>
 
   <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("question");
+    // Existing Cloudflare Worker: keep this URL unchanged.
+    const API_URL =
+      "https://round-heart-0fcb.ismailmulla41601.workers.dev/";
+
+    const CONVERSATIONS_KEY = "ismaConversations";
+    const CURRENT_CHAT_KEY = "ismaCurrentChatId";
+    const OLD_HISTORY_KEY = "ismaChatHistory";
+
+    const chatBox = document.getElementById("chatBox");
+    const userInput = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendBtn");
-    const voiceBtn = document.getElementById("voiceBtn");
+    const micBtn = document.getElementById("micBtn");
+    const historyOverlay = document.getElementById("historyOverlay");
+    const historyList = document.getElementById("historyList");
 
-    const HISTORY_KEY = "ismaChatHistory";
+    let conversations = [];
+    let currentChatId = null;
+    let isSending = false;
+    let recognition = null;
+    let isListening = false;
 
-    function saveChatHistory() {
+    function makeId() {
+      return "chat_" + Date.now() + "_" +
+        Math.random().toString(36).slice(2, 8);
+    }
+
+    function makeConversation() {
+      return {
+        id: makeId(),
+        title: "New conversation",
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+    }
+
+    function getCurrentChat() {
+      return conversations.find(chat => chat.id === currentChatId);
+    }
+
+    function saveConversations() {
       try {
-        localStorage.setItem(HISTORY_KEY, chat.innerHTML);
+        localStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(conversations));
+        localStorage.setItem(CURRENT_CHAT_KEY, currentChatId || "");
       } catch (error) {
-        console.warn("Chat history save nahi hui.", error);
+        console.error("Could not save chat history:", error);
       }
     }
 
-    function loadChatHistory() {
+    function loadConversations() {
       try {
-        const saved = localStorage.getItem(HISTORY_KEY);
+        const saved = localStorage.getItem(CONVERSATIONS_KEY);
 
         if (saved) {
-          chat.innerHTML = saved;
-        }
-      } catch (error) {
-        console.warn("Chat history load nahi hui.", error);
-      }
-
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    function addMessage(text, type) {
-      const div = document.createElement("div");
-      div.className = "msg " + type;
-      div.textContent = String(text);
-
-      chat.appendChild(div);
-      saveChatHistory();
-      chat.scrollTop = chat.scrollHeight;
-
-      return div;
-    }
-
-    function newChat() {
-      if (!confirm("New chat shuru karein?")) return;
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-
-      chat.innerHTML = "";
-
-      try {
-        localStorage.removeItem(HISTORY_KEY);
-      } catch (error) {
-        console.warn("Saved history clear nahi hui.", error);
-      }
-
-      input.value = "";
-
-      addMessage(
-        "Namaste! 😊 Main ISMA AI hoon. Nayi chat mein aapka swagat hai! Batao, kya help chahiye?",
-        "bot"
-      );
-
-      input.focus();
-    }
-
-    async function sendMessage() {
-      const question = input.value.trim();
-
-      if (!question || sendBtn.disabled) return;
-
-      addMessage(question, "user");
-      input.value = "";
-      sendBtn.disabled = true;
-      sendBtn.textContent = "Wait...";
-
-      const reply = addMessage("Soch raha hoon...", "bot");
-
-      try {
-        const response = await fetch(
-          "https://round-heart-0fcb.ismailmulla41601.workers.dev/",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              message:
-                "You are ISMA AI. Your creator is Ismail Mulla. " +
-                "If asked who created you, say Ismail Mulla. " +
-                "Reply in the same language as the user. " +
-                "User question: " + question,
-
-              system:
-                "Your name is ISMA AI. Your creator is Ismail Mulla. " +
-                "The user's name is not automatically Ismail Mulla; " +
-                "do not assume the user's identity from your creator's name. " +
-                "If asked your name, say: I am ISMA AI. " +
-                "If asked who created you, say: Ismail Mulla created ISMA AI. " +
-                "Never confuse yourself with your creator or the user. " +
-                "Reply in the same language as the user. " +
-                "Use natural, correct Hindi, Kannada, and Urdu. " +
-                "Be helpful and honest."
-            })
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            conversations = parsed.filter(chat =>
+              chat &&
+              typeof chat.id === "string" &&
+              Array.isArray(chat.messages)
+            );
           }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error || "Server error: " + response.status
-          );
         }
 
-        const answer =
-          typeof data === "string"
-            ? data
-            : (
-                data.reply ||
-                data.response ||
-                data.error ||
-                "AI se jawab nahi mila."
-              );
+        // Import the old single-chat history if no multi-chat history exists.
+        if (!conversations.length) {
+          const oldSaved = localStorage.getItem(OLD_HISTORY_KEY);
 
-        reply.textContent = answer;
-        saveChatHistory();
-        speakText(answer);
+          if (oldSaved) {
+            const oldMessages = JSON.parse(oldSaved);
 
+            if (Array.isArray(oldMessages) && oldMessages.length) {
+              const imported = makeConversation();
+
+              imported.messages = oldMessages
+                .filter(item => item && typeof item.text === "string")
+                .map(item => ({
+                  role: item.role === "user" ? "user" : "assistant",
+                  text: item.text
+                }));
+
+              const firstUser = imported.messages.find(m => m.role === "user");
+              if (firstUser) imported.title = makeTitle(firstUser.text);
+
+              conversations.push(imported);
+            }
+          }
+        }
+
+        const storedId = localStorage.getItem(CURRENT_CHAT_KEY);
+        currentChatId = conversations.some(c => c.id === storedId)
+          ? storedId
+          : null;
+
+        if (!currentChatId && conversations.length) {
+          currentChatId = conversations
+            .slice()
+            .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0].id;
+        }
+
+        if (!currentChatId) {
+          const firstChat = makeConversation();
+          conversations.push(firstChat);
+          currentChatId = firstChat.id;
+        }
+
+        saveConversations();
       } catch (error) {
-        console.error("ISMA AI error:", error);
-
-        reply.textContent =
-          "AI se connect nahi ho paya. Internet aur AI server check karo.";
-
-        saveChatHistory();
-
-      } finally {
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Send";
-        input.focus();
+        console.error("Could not load chat history:", error);
+        conversations = [makeConversation()];
+        currentChatId = conversations[0].id;
+        saveConversations();
       }
     }
 
-    function speakText(text) {
-      if (!("speechSynthesis" in window)) return;
-
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      if (/[\u0C80-\u0CFF]/.test(text)) {
-        utterance.lang = "kn-IN";
-      } else if (/[\u0900-\u097F]/.test(text)) {
-        utterance.lang = "hi-IN";
-      } else if (/[\u0600-\u06FF]/.test(text)) {
-        utterance.lang = "ur-PK";
-      } else {
-        utterance.lang = "en-IN";
-      }
-
-      utterance.rate = 1;
-      utterance.pitch = 1;
-
-      window.speechSynthesis.speak(utterance);
+    function makeTitle(text) {
+      const clean = String(text).replace(/\s+/g, " ").trim();
+      if (!clean) return "New conversation";
+      return clean.length > 30 ? clean.slice(0, 30) + "…" : clean;
     }
 
-    function startVoiceInput() {
-      const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+    function escapeText(text) {
+      return String(text ?? "");
+    }
 
-      if (!SpeechRecognition) {
-        addMessage(
-          "Voice input supported nahi hai. Android Chrome mein try karo.",
-          "bot"
-        );
+    function closeHistory() {
+      historyOverlay.classList.remove("open");
+    }
+
+    function openHistory() {
+      renderHistory();
+      historyOverlay.classList.add("open");
+    }
+
+    function renderHistory() {
+      historyList.replaceChildren();
+
+      const sorted = conversations
+        .slice()
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+      if (!sorted.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-history";
+        empty.textContent = "No conversations yet.";
+        historyList.appendChild(empty);
         return;
       }
 
-      const recognition = new SpeechRecognition();
+      sorted.forEach(chat => {
+        const item = document.createElement("div");
+        item.className = "history-item" +
+          (chat.id === currentChatId ? " active" : "");
 
-      recognition.lang = "hi-IN";
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
+        const openButton = document.createElement("button");
+        openButton.className = "history-open";
+        openButton.type = "button";
 
-      voiceBtn.disabled = true;
-      voiceBtn.textContent = "🎙️";
+        const title = document.createElement("span");
+        title.className = "history-title";
+        title.textContent = chat.title || "New conversation";
 
-      recognition.onresult = function(event) {
-        input.value = event.results[0][0].transcript;
-        input.focus();
-      };
+        const date = document.createElement("span");
+        date.className = "history-date";
+        date.textContent = formatDate(chat.updatedAt || chat.createdAt);
 
-      recognition.onerror = function(event) {
-        addMessage(
-          event.error === "not-allowed"
-            ? "Microphone permission allow karo."
-            : "Voice input nahi chala. Dobara try karo.",
-          "bot"
-        );
-      };
+        openButton.append(title, date);
+        openButton.addEventListener("click", () => {
+          currentChatId = chat.id;
+          saveConversations();
+          renderChat();
+          renderHistory();
+          closeHistory();
+        });
 
-      recognition.onend = function() {
-        voiceBtn.disabled = false;
-        voiceBtn.textContent = "🎤";
-      };
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-btn";
+        deleteButton.type = "button";
+        deleteButton.textContent = "✕";
+        deleteButton.title = "Delete this conversation";
+        deleteButton.setAttribute("aria-label", "Delete conversation");
 
+        deleteButton.addEventListener("click", event => {
+          event.stopPropagation();
+          deleteConversation(chat.id);
+        });
+
+        item.append(openButton, deleteButton);
+        historyList.appendChild(item);
+      });
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return "";
       try {
-        recognition.start();
-      } catch (error) {
-        voiceBtn.disabled = false;
-        voiceBtn.textContent = "🎤";
-
-        addMessage(
-          "Voice input shuru nahi hua. Dobara try karo.",
-          "bot"
-        );
+        return new Date(timestamp).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      } catch {
+        return "";
       }
     }
 
-    loadChatHistory();
+    function startNewChat() {
+      const chat = makeConversation();
+      conversations.push(chat);
+      currentChatId = chat.id;
+      saveConversations();
+      renderChat();
+      renderHistory();
+      closeHistory();
+      userInput.focus();
+    }
 
-    input.addEventListener("keydown", function(event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage();
+    function deleteConversation(id) {
+      const chat = conversations.find(c => c.id === id);
+      if (!chat) return;
+
+      const confirmed = confirm(
+        'Delete "' + (chat.title || "New conversation") +
+        '"? This cannot be undone.'
+      );
+
+      if (!confirmed) return;
+
+      conversations = conversations.filter(c => c.id !== id);
+
+      if (currentChatId === id) {
+        if (conversations.length) {
+          conversations.sort((a, b) =>
+            (b.updatedAt || 0) - (a.updatedAt || 0)
+          );
+          currentChatId = conversations[0].id;
+        } else {
+          const fresh = makeConversation();
+          conversations.push(fresh);
+          currentChatId = fresh.id;
+        }
       }
-    });
-  </script>
-</body>
-</html>
+
+      saveConversations();
+      renderChat();
+      renderHistory();
+    }
+
+    function addMessage(role, text) {
+      const chat = getCurrentChat();
+      if (!chat) return;
+
+      chat.messages.push({
+        role: role,
+        text: escapeText(text)
+      });
+
+      if (role === "user" && chat.title === "New conversation") {
+        chat.title = makeTitle(text);
+      }
+
+      chat.updatedAt = Date.now();
+      saveConversations();
+      renderChat();
+      renderHistory();
+    }
+
+    function renderChat() {
+      chatBox.replaceChildren();
+
+      const chat = getCurrentChat();
+
+      if (!chat || !chat.messages.length) {
+        const welcome = document.createElement("div");
+        welcome.className = "welcome";
+
+        const logo = document.createElement("div");
+        logo.className = "welcome-logo";
+        logo.textContent = "I";
+
+        const heading = document.createElement("h2");
+        heading.textContent = "Hello! I'm ISMA AI";
+
+        const description = document.createElement("p");
+        description.textContent =
+          "Your personal AI assistant. Ask me anything, or use the microphone to talk.";
+
+        const suggestions = document.createElement("div");
+        suggestions.className = "suggestions";
+
+        [
+          "Explain something",
+          "Write a poem",
+          "Help me study"
+        ].forEach(label => {
+          const button = document.createElement("button");
+          button.className = "suggestion";
+          button.textContent = label;
+          button.addEventListener("click", () => {
+            userInput.value = label;
+            sendMessage();
+          });
+          suggestions.appendChild(button);
+        });
+
+        welcome.append(logo, heading, description, suggestions);
+        chatBox.appendChild(welcome);
+        return;
+      }
+
+      chat.messages.forEach(message => {
+        const row = document.createElement("div");
+        row.className = "message " +
+          (message.role === "user" ? "user" : "assistant");
+
+        const avatar = document.createElement("div");
+        avat
