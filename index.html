@@ -4,30 +4,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b14">
   <title>ISMA AI</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #080b14;
       color: white;
     }
+
     header {
-      padding: 20px;
+      padding: 18px;
       text-align: center;
       background: #111827;
       border-bottom: 1px solid #263449;
     }
-    header h1 { color: #00e5ff; margin: 0; }
-    header p { color: #aab6cc; margin-bottom: 0; }
+
+    header h1 {
+      color: #00e5ff;
+      margin: 0;
+    }
+
+    header p {
+      color: #aab6cc;
+      margin-bottom: 0;
+    }
+
     #chat {
       padding: 18px;
       max-width: 700px;
       margin: auto;
-      height: 65vh;
+      height: calc(100dvh - 180px);
       overflow-y: auto;
+      padding-bottom: 24px;
     }
+
     .msg {
       padding: 12px 15px;
       margin: 12px 0;
@@ -36,87 +53,207 @@
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
-    .bot { background: #172337; border: 1px solid #263c58; }
-    .user { background: #063d4b; text-align: right; }
+
+    .bot {
+      background: #172337;
+      border: 1px solid #263c58;
+    }
+
+    .user {
+      background: #063d4b;
+      text-align: right;
+    }
+
     footer {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 12px;
+      padding: 10px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
       background: #111827;
+      border-top: 1px solid #263449;
       display: flex;
-      gap: 8px;
+      gap: 7px;
+      align-items: center;
     }
+
     input {
       flex: 1;
+      width: 100%;
       min-width: 0;
-      padding: 13px;
+      padding: 12px;
       border-radius: 10px;
       border: 1px solid #34445c;
       background: #080b14;
       color: white;
       font-size: 16px;
     }
+
     button {
-      padding: 12px 15px;
+      padding: 12px 13px;
       border: 0;
       border-radius: 10px;
       background: #00d9f5;
       color: #001018;
       font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    #newChatBtn {
+      background: #25354b;
+      color: #ffffff;
+      border: 1px solid #40536e;
+    }
+
+    @media (max-width: 480px) {
+      footer {
+        gap: 5px;
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+
+      footer button {
+        padding: 12px 9px;
+        font-size: 12px;
+      }
+
+      #chat {
+        height: calc(100dvh - 175px);
+        padding: 12px;
+      }
+
+      header {
+        padding: 14px;
+      }
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>ISMA AI</h1>
-<p>Created by Ismail Mulla</p>
+    <p>Created by Ismail Mulla</p>
     <p>Your personal AI assistant</p>
   </header>
 
-  <main id="chat">
-    <div class="msg bot">Namaste! 👋 Main ISMA AI hoon. Mujhse kuch bhi poochho!</div>
+  <main id="chat" aria-live="polite">
+    <div class="msg bot">
+      Namaste! 👋 Main ISMA AI hoon. Mujhse kuch bhi poochho!
+    </div>
   </main>
 
-  
-<footer>
-  <input id="question" placeholder="Message ISMA AI..." />
-  <button id="voiceBtn" onclick="startVoiceInput()" type="button">🎤</button>
-  <button onclick="sendMessage()" type="button">Send</button>
-</footer>
-  
+  <footer>
+    <input
+      id="question"
+      type="text"
+      placeholder="Message ISMA AI..."
+      aria-label="Message ISMA AI"
+      autocomplete="off"
+    />
+
+    <button
+      id="voiceBtn"
+      onclick="startVoiceInput()"
+      type="button"
+      aria-label="Voice input"
+    >🎤</button>
+
+    <button
+      id="sendBtn"
+      onclick="sendMessage()"
+      type="button"
+    >Send</button>
+
+    <button
+      id="newChatBtn"
+      onclick="newChat()"
+      type="button"
+    >＋ New Chat</button>
+  </footer>
 
   <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("question");
+    const sendBtn = document.getElementById("sendBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+
+    const HISTORY_KEY = "ismaChatHistory";
+
+    function saveChatHistory() {
+      try {
+        localStorage.setItem(HISTORY_KEY, chat.innerHTML);
+      } catch (error) {
+        console.warn("Chat history save nahi hui.", error);
+      }
+    }
+
+    function loadChatHistory() {
+      try {
+        const saved = localStorage.getItem(HISTORY_KEY);
+
+        if (saved) {
+          chat.innerHTML = saved;
+        }
+      } catch (error) {
+        console.warn("Chat history load nahi hui.", error);
+      }
+
+      chat.scrollTop = chat.scrollHeight;
+    }
 
     function addMessage(text, type) {
       const div = document.createElement("div");
       div.className = "msg " + type;
-      div.textContent = text;
+      div.textContent = String(text);
+
       chat.appendChild(div);
       saveChatHistory();
       chat.scrollTop = chat.scrollHeight;
+
       return div;
     }
-function saveChatHistory() {
-  localStorage.setItem("ismaChatHistory", chat.innerHTML);
-}
-    function loadChatHistory() {
-  const saved = localStorage.getItem("ismaChatHistory");
 
-  if (saved) {
-    chat.innerHTML = saved;
-    chat.scrollTop = chat.scrollHeight;
-  }
+    function newChat() {
+      if (!confirm("New chat shuru karein?")) return;
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      chat.innerHTML = "";
+
+      try {
+        localStorage.removeItem(HISTORY_KEY);
+      } catch (error) {
+        console.warn("Saved history clear nahi hui.", error);
+      }
+
+      input.value = "";
+
+      addMessage(
+        "Namaste! 😊 Main ISMA AI hoon. Nayi chat mein aapka swagat hai! Batao, kya help chahiye?",
+        "bot"
+      );
+
+      input.focus();
     }
+
     async function sendMessage() {
       const question = input.value.trim();
-      if (!question) return;
+
+      if (!question || sendBtn.disabled) return;
 
       addMessage(question, "user");
       input.value = "";
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Wait...";
 
       const reply = addMessage("Soch raha hoon...", "bot");
 
@@ -125,86 +262,151 @@ function saveChatHistory() {
           "https://round-heart-0fcb.ismailmulla41601.workers.dev/",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-  message: "You are ISMA AI. Your creator is Ismail Mulla. If asked who created you, say Ismail Mulla. Reply in the same language as the user. User question: " + question,
+              message:
+                "You are ISMA AI. Your creator is Ismail Mulla. " +
+                "If asked who created you, say Ismail Mulla. " +
+                "Reply in the same language as the user. " +
+                "User question: " + question,
 
-system: "Your name is ISMA AI. Your creator is Ismail Mulla. The user's name is not automatically Ismail Mulla; do not assume the user's identity from your creator's name. If asked your name, say: I am ISMA AI. If asked who created you, say: Ismail Mulla created ISMA AI. Never confuse yourself with your creator or the user. Reply in the same language as the user. Use natural, correct Hindi, Kannada, and Urdu. Be helpful and honest."
-              
-
-})
-            
+              system:
+                "Your name is ISMA AI. Your creator is Ismail Mulla. " +
+                "The user's name is not automatically Ismail Mulla; " +
+                "do not assume the user's identity from your creator's name. " +
+                "If asked your name, say: I am ISMA AI. " +
+                "If asked who created you, say: Ismail Mulla created ISMA AI. " +
+                "Never confuse yourself with your creator or the user. " +
+                "Reply in the same language as the user. " +
+                "Use natural, correct Hindi, Kannada, and Urdu. " +
+                "Be helpful and honest."
+            })
           }
         );
 
         const data = await response.json();
-        reply.textContent = typeof data === "string" ? data : (data.reply || data.response || data.error || JSON.stringify(data));
+
+        if (!response.ok) {
+          throw new Error(
+            data.error || "Server error: " + response.status
+          );
+        }
+
+        const answer =
+          typeof data === "string"
+            ? data
+            : (
+                data.reply ||
+                data.response ||
+                data.error ||
+                "AI se jawab nahi mila."
+              );
+
+        reply.textContent = answer;
         saveChatHistory();
-        speakText(reply.textContent);
+        speakText(answer);
+
       } catch (error) {
-        reply.textContent = "AI server connect nahi hua. Server URL check karna hoga.";
-        
-saveChatHistory();
+        console.error("ISMA AI error:", error);
+
+        reply.textContent =
+          "AI se connect nahi ho paya. Internet aur AI server check karo.";
+
+        saveChatHistory();
+
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send";
+        input.focus();
       }
     }
-function speakText(text) {
-  if (!("speechSynthesis" in window)) {
-    addMessage("Voice playback supported nahi hai.", "bot");
-    return;
-  }
 
-  window.speechSynthesis.cancel();
+    function speakText(text) {
+      if (!("speechSynthesis" in window)) return;
 
-  const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.cancel();
 
-  if (/[\u0C80-\u0CFF]/.test(text)) {
-    utterance.lang = "kn-IN";
-  } else if (/[\u0900-\u097F]/.test(text)) {
-    utterance.lang = "hi-IN";
-  } else if (/[\u0600-\u06FF]/.test(text)) {
-    utterance.lang = "ur-PK";
-  } else {
-    utterance.lang = "en-IN";
-  }
+      const utterance = new SpeechSynthesisUtterance(text);
 
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  window.speechSynthesis.speak(utterance);
-}
-function startVoiceInput() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (/[\u0C80-\u0CFF]/.test(text)) {
+        utterance.lang = "kn-IN";
+      } else if (/[\u0900-\u097F]/.test(text)) {
+        utterance.lang = "hi-IN";
+      } else if (/[\u0600-\u06FF]/.test(text)) {
+        utterance.lang = "ur-PK";
+      } else {
+        utterance.lang = "en-IN";
+      }
 
-  if (!SpeechRecognition) {
-    addMessage("Voice input supported nahi hai. Chrome try karo.", "bot");
-    return;
-  }
+      utterance.rate = 1;
+      utterance.pitch = 1;
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = "hi-IN";
+      window.speechSynthesis.speak(utterance);
+    }
 
-  const voiceBtn = document.getElementById("voiceBtn");
+    function startVoiceInput() {
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
-  recognition.onstart = function() {
-    voiceBtn.textContent = "🎙️";
-  };
+      if (!SpeechRecognition) {
+        addMessage(
+          "Voice input supported nahi hai. Android Chrome mein try karo.",
+          "bot"
+        );
+        return;
+      }
 
-  recognition.onresult = function(event) {
-    input.value = event.results[0][0].transcript;
-  };
+      const recognition = new SpeechRecognition();
 
-  recognition.onerror = function() {
-    addMessage("Microphone permission check karo.", "bot");
-  };
+      recognition.lang = "hi-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
 
-  recognition.onend = function() {
-    voiceBtn.textContent = "🎤";
-  };
+      voiceBtn.disabled = true;
+      voiceBtn.textContent = "🎙️";
 
-  recognition.start();
-}
+      recognition.onresult = function(event) {
+        input.value = event.results[0][0].transcript;
+        input.focus();
+      };
+
+      recognition.onerror = function(event) {
+        addMessage(
+          event.error === "not-allowed"
+            ? "Microphone permission allow karo."
+            : "Voice input nahi chala. Dobara try karo.",
+          "bot"
+        );
+      };
+
+      recognition.onend = function() {
+        voiceBtn.disabled = false;
+        voiceBtn.textContent = "🎤";
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        voiceBtn.disabled = false;
+        voiceBtn.textContent = "🎤";
+
+        addMessage(
+          "Voice input shuru nahi hua. Dobara try karo.",
+          "bot"
+        );
+      }
+    }
+
     loadChatHistory();
+
     input.addEventListener("keydown", function(event) {
-      if (event.key === "Enter") sendMessage();
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
     });
   </script>
 </body>
