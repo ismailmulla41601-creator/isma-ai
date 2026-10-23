@@ -102,6 +102,14 @@
 function saveChatHistory() {
   localStorage.setItem("ismaChatHistory", chat.innerHTML);
 }
+    function loadChatHistory() {
+  const saved = localStorage.getItem("ismaChatHistory");
+
+  if (saved) {
+    chat.innerHTML = saved;
+    chat.scrollTop = chat.scrollHeight;
+  }
+    }
     async function sendMessage() {
       const question = input.value.trim();
       if (!question) return;
@@ -207,7 +215,7 @@ function startVoiceInput() {
 
   recognition.start();
 }
-    
+    loadChatHistory();
     input.addEventListener("keydown", function(event) {
       if (event.key === "Enter") sendMessage();
     });
