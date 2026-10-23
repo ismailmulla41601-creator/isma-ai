@@ -99,7 +99,9 @@
       chat.scrollTop = chat.scrollHeight;
       return div;
     }
-
+function saveChatHistory() {
+  localStorage.setItem("ismaChatHistory", chat.innerHTML);
+}
     async function sendMessage() {
       const question = input.value.trim();
       if (!question) return;
